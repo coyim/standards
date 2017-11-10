@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE xep SYSTEM 'xep.dtd' [
+  <!ENTITY % ents SYSTEM 'xep.ent'>
+%ents;
+]>
+<?xml-stylesheet type='text/xsl' href='xep.xsl'?>
+<xep>
+<header>
+  <title>SI Directory Transfer</title>
+  <abstract>This specification defines a Stream Initiation profile for the transfer of directories.</abstract>
+  &LEGALNOTICE;
+  <number>xxxx</number>
+  <status>ProtoXEP</status>
+  <type>Standards Track</type>
+  <sig>Standards</sig>
+  <approver>Council</approver>
+  <dependencies>
+    <spec>XMPP Core</spec>
+    <spec>XEP-0095</spec>
+    <spec>XEP-0096</spec>
+  </dependencies>
+  <supersedes/>
+  <supersededby/>
+  <shortname>si-dirtransfer</shortname>
+  <author>
+    <firstname>Ola</firstname>
+    <surname>Bini</surname>
+    <email>xmpp@olabini.se</email>
+    <jid>ola@bini.ec</jid>
+  </author>
+  <revision>
+    <version>0.0.1</version>
+    <date>2017-11-10</date>
+    <initials>ob</initials>
+    <remark><p>First draft.</p></remark>
+  </revision>
+</header>
+<section1 topic='Introduction' anchor='intro'>
+  <p>The transfer of files with the orchestration of XMPP is well established through several XEPs. However, none of these provide for the transfer of full directories - instead leaving the task of packaging the directory to the user. This XEP is a lightweight extension to &xep0096; that simplifies the process of sending a directory through any of the transfer profiles that can be initiated through &xep0095;.</p>
+</section1>
+<section1 topic='Requirements' anchor='reqs'>
+  <ul>
+    <li>Enable seamless transfer of folders, including fall-back mechanisms as appropriate.</li>
+    <li>Minimizing the changes and additions to existing standards and code.</li>
+  </ul>
+</section1>
+<section1 topic='Protocol' anchor='protocol'>
+  <p>This XEP follows as closely to &xep0096; as possible. In particular, the same namespace is used and the same metadata. The only difference in the actual wire protocol is that the SI profile used is named "http://jabber.org/protocol/si/profile/directory-transfer" instead of "http://jabber.org/protocol/si/profile/file-transfer".</p>
+  <p>In order to send a directory through this mechanism, it needs to be packaged into a single file first. The method used for this is the Zip compression algorithm, as specified in ISO/IEC 21320-1:2015. The resulting Zip file SHOULD contain all the files from the directory chosen. Each entry in the Zip file MUST be normalized to be a relative file path where the root of that path is the same directory name as that given in the 'name' attribute in the &lt;file/&gt; element.</p>
+  <p>Once support has been determined, a sender can proceed with SI negotiation as usual. The final result will be a file transfer of a Zip file containing the full directory. The 'name' attribute of the &lt;file/&gt; element SHOULD contain the name of the directory to send. The rest of the attributes of the &lt;file/&gt; element SHOULD be based on the resulting Zip file.</p>
+</section1>
+<section1 topic='Determining support' anchor='determining-support'>
+  <p>To advertise its support for SI Directory Transfer, when replying to &xep0030; information requests an
+  entity MUST return the following feature:</p>
+
+  <ul>
+     <li>"http://jabber.org/protocol/si/profile/directory-transfer"</li>
+  </ul>
+
+  <p>An example follows:</p>
+
+  <example caption="Service discovery information request"><![CDATA[
+    <iq from='romeo@montague.lit/orchard'
+	id='abcd0011'
+	to='juliet@capulet.lit/balcony'
+	type='get'>
+      <query xmlns='http://jabber.org/protocol/disco#info'/>
+    </iq>
+]]></example>
+
+  <example caption="Service discovery information response"><![CDATA[
+    <iq from='juliet@capulet.lit/balcony'
+	id='abcd0011'
+	to='romeo@montague.lit/orchard'
+	type='result'>
+      <query xmlns='http://jabber.org/protocol/disco#info'>
+	<feature var='http://jabber.org/protocol/si'/>
+	<feature var='http://jabber.org/protocol/si/profile/directory-transfer'/>
+      </query>
+    </iq>
+]]></example>
+</section1>
+
+<section1 topic='Security Considerations' anchor='security'>
+  <p>When receiving a directory transfer, it's important to make sure when unpacking the Zip file, that it doesn't contain any relative paths that would overwrite existing files on the clients file system. This is best done by validating that each entry in the Zip file is normalized and is relative to the initial directory, before unpacking the file.</p>
+</section1>
+<section1 topic='IANA Considerations' anchor='iana'>
+  <p>No interaction with &IANA; is required as a result of this document.</p>
+</section1>
+<section1 topic='XMPP Registrar Considerations' anchor='registrar'>
+  <section2 topic='Stream Initiation Profiles' anchor='registrar-siprofiles'>
+  <p>The profile described in this document will need to be included in the stream initiation profiles registry maintained by the &REGISTRAR; (see &SIPROFILES;). The registry submission is as follows:</p>
+    <code><![CDATA[
+<profile>
+  <name>http://jabber.org/protocol/si/profile/directory-transfer</name>
+  <doc>XEP-xxxx</doc>
+  <desc>A profile for directory transfer between any two entities.</desc>
+</profile>
+]]></code>
+  </section2>
+</section1>
+</xep>
